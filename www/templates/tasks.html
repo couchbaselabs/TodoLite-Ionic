@@ -1,0 +1,13 @@
+<ion-view title="TodoLite">
+    <ion-nav-buttons side="right">
+        <button class="right button button-icon icon ion-plus" ng-click="insert()"></button>
+    </ion-nav-buttons>
+    <ion-content>
+        <ion-list show-delete="false" can-swipe="true">
+            <ion-item ng-repeat="task in tasks" ng-if="task.list_id == todoList">
+                {{task.title}}
+                <ion-option-button class="button-assertive icon ion-trash-a" ng-click=""></ion-option-button>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
