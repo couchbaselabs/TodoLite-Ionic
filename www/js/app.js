@@ -19,6 +19,7 @@ couchbaseApp.run(function($ionicPlatform, $couchbase) {
                     return;
                 }
                 console.log("URL -> " + url);
+                //var devUrl = "http://f055eb3f-d62d-4fb3-9e97-d9ee3c40d6a7:b4a3dbd3-329b-4e34-856c-b4240128da29@localhost:5984/";
                 todoDatabase = new $couchbase(url, "todo");
                 todoDatabase.createDatabase().then(function(result) {
                     var todoViews = {
@@ -41,8 +42,8 @@ couchbaseApp.run(function($ionicPlatform, $couchbase) {
                 }, function(error) {
                     console.error(JSON.stringify(error));
                 });
-            });
-        }
+             });
+         }
     });
 });
 
@@ -74,6 +75,12 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
     });
 
     $scope.basicLogin = function() {
+        todoDatabase.replicate({source: "todo", target: {url: "http://192.168.56.1:4984/todos"}, continuous: true}).then(function(result) {
+            console.log("REPLICATION -> " + JSON.stringify(result));
+            $state.go("todoLists");
+        }, function(error) {
+            console.error("ERROR -> " + JSON.stringify(error));
+        });
         $state.go("todoLists");
     }
 
@@ -82,6 +89,17 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
 couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPopup, $couchbase) {
 
     $scope.lists = [];
+
+    var refresh = function(sequence) {
+        todoDatabase.getChanges(false, "longpoll", sequence).then(function(result) {
+            console.log(JSON.stringify(result));
+            //refresh(sequence + 1);
+        }, function(error) {
+            console.error("ERROR -> " + JSON.stringify(error));
+        });
+    }
+
+    refresh(0);
 
     todoDatabase.queryView("_design/todo", "lists").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
@@ -99,7 +117,8 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
         .then(function(result) {
             var obj = {
                 title: result,
-                type: "list"
+                type: "list",
+                owner: "nraboy"
             };
             todoDatabase.createDocument(obj).then(function(result) {
                 obj._id = result.id;
@@ -154,7 +173,8 @@ couchbaseApp.controller("TaskController", function($scope, $stateParams, $ionicP
             var obj = {
                 title: result,
                 type: "task",
-                list_id: $stateParams.listId
+                list_id: $stateParams.listId,
+                owner: "nraboy"
             };
             todoDatabase.createDocument(obj).then(function(result) {
                 obj._id = result.id;

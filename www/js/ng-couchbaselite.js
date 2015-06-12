@@ -99,6 +99,18 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http) 
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_all_docs");
         },
 
+        replicate: function(data) {
+            return this.makeRequest("POST", this.databaseUrl + "_replicate", {}, data);
+        },
+
+        getChanges: function(includeDocs, feed, timeout, since) {
+            includeDocs = includeDocs ? includeDocs : false;
+            feed = feed ? feed : "normal";
+            timeout = timeout ? timeout : 5000;
+            since = since ? since : 0;
+            return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_changes", {include_docs: includeDocs, feed: feed, since: since});
+        },
+
         /*
          * Make a RESTful request to an endpoint while providing parameters or data or both
          *
@@ -112,7 +124,8 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http) 
             var deferred = $q.defer();
             var settings = {
                 method: method,
-                url: url
+                url: url,
+                withCredentials: true
             }
             if(params) {
                 settings.params = params;
