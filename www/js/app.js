@@ -75,13 +75,17 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
     });
 
     $scope.basicLogin = function() {
-        todoDatabase.replicate({source: "todo", target: {url: "http://192.168.56.1:4984/todos"}, continuous: true}).then(function(result) {
-            console.log("REPLICATION -> " + JSON.stringify(result));
-            $state.go("todoLists");
+        todoDatabase.replicate("todo", "http://192.168.56.1:4984/todos", true).then(function(result) {
+            todoDatabase.replicate("http://192.168.56.1:4984/todos", "todo", true).then(function(result) {
+                console.log("REPLICATION -> " + JSON.stringify(result));
+                $state.go("todoLists");
+            }, function(error) {
+                console.error("ERROR -> " + JSON.stringify(error));
+            });
         }, function(error) {
             console.error("ERROR -> " + JSON.stringify(error));
         });
-        $state.go("todoLists");
+        //$state.go("todoLists");
     }
 
 });
@@ -90,16 +94,30 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
 
     $scope.lists = [];
 
-    var refresh = function(sequence) {
-        todoDatabase.getChanges(false, "longpoll", sequence).then(function(result) {
-            console.log(JSON.stringify(result));
+    (function refresh(sequence) {
+        todoDatabase.getChanges(true, "longpoll", 60000, sequence).then(function(result) {
+            console.log("POLLING FOR CHANGES!!!!!!!!!!!!!!");
+            console.log(JSON.stringify(result.results[0].id));
+            for(var i = 0; i < result.results.length; i++) {
+                console.log("!!!!!!!GETTING DOCUMENT FOR -> " + result.results[i].id);
+                todoDatabase.getDocument(result.results[i].id).then(function(result) {
+                    $scope.lists.push({"_id": result._id, "title": result.title, "_rev": result._rev});
+                    console.log("!!!!!!!RESULT -> " + JSON.stringify(result));
+                }, function(error) {
+                    console.error("!!!!!!!ERROR -> " + JSON.stringify(error));
+                });
+            }
+            setTimeout(function() {
+                console.log("LAST SEQUENCE -> " + result.last_seq);
+                refresh(result.last_seq);
+            }, 3000);
             //refresh(sequence + 1);
         }, function(error) {
             console.error("ERROR -> " + JSON.stringify(error));
         });
-    }
+    })();
 
-    refresh(0);
+    //refresh(2);
 
     todoDatabase.queryView("_design/todo", "lists").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {

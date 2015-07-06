@@ -99,8 +99,12 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http) 
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_all_docs");
         },
 
-        replicate: function(data) {
-            return this.makeRequest("POST", this.databaseUrl + "_replicate", {}, data);
+        getDocument: function(documentId) {
+            return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/" + documentId);
+        },
+
+        replicate: function(source, target, continuous) {
+            return this.makeRequest("POST", this.databaseUrl + "_replicate", {}, {source: source, target: target, continuous: continuous});
         },
 
         getChanges: function(includeDocs, feed, timeout, since) {
@@ -108,6 +112,7 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http) 
             feed = feed ? feed : "normal";
             timeout = timeout ? timeout : 5000;
             since = since ? since : 0;
+            console.log(JSON.stringify({includeDocs: includeDocs, feed: feed, timeout: timeout, since: since}));
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_changes", {include_docs: includeDocs, feed: feed, since: since});
         },
 

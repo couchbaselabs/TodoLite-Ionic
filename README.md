@@ -23,6 +23,10 @@ Then install all the required plugins:
 ```
 cordova plugin add cordova-plugin-camera
 cordova plugin add cordova-plugin-whitelist
+cordova plugin add cordova-plugin-device
+cordova plugin add cordova-plugin-console
+cordova plugin add cordova-plugin-splashscreen
+cordova plugin add com.ionic.keyboard
 cordova plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git
 ```
 
