@@ -90,7 +90,7 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
 
 });
 
-couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPopup, $couchbase) {
+couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPopup, $couchbase, $rootScope) {
 
     $scope.lists = [];
 
@@ -116,6 +116,10 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
             console.error("ERROR -> " + JSON.stringify(error));
         });
     })();
+
+    $rootScope.$on("couchbase:change", function(data) {
+        console.log("!!!!BROADCAST RECEIVER -> " + JSON.stringify(data));
+    });
 
     //refresh(2);
 
