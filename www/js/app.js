@@ -18,8 +18,6 @@ couchbaseApp.run(function($ionicPlatform, $couchbase) {
                     alert("There was an error getting the database URL");
                     return;
                 }
-                console.log("URL -> " + url);
-                //var devUrl = "http://f055eb3f-d62d-4fb3-9e97-d9ee3c40d6a7:b4a3dbd3-329b-4e34-856c-b4240128da29@localhost:5984/";
                 todoDatabase = new $couchbase(url, "todo");
                 todoDatabase.createDatabase().then(function(result) {
                     var todoViews = {
@@ -85,7 +83,6 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
         }, function(error) {
             console.error("ERROR -> " + JSON.stringify(error));
         });
-        //$state.go("todoLists");
     }
 
 });
@@ -94,39 +91,44 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
 
     $scope.lists = [];
 
-    (function refresh(sequence) {
-        todoDatabase.getChanges(true, "longpoll", 60000, sequence).then(function(result) {
-            console.log("POLLING FOR CHANGES!!!!!!!!!!!!!!");
-            console.log(JSON.stringify(result.results[0].id));
-            for(var i = 0; i < result.results.length; i++) {
-                console.log("!!!!!!!GETTING DOCUMENT FOR -> " + result.results[i].id);
-                todoDatabase.getDocument(result.results[i].id).then(function(result) {
-                    $scope.lists.push({"_id": result._id, "title": result.title, "_rev": result._rev});
-                    console.log("!!!!!!!RESULT -> " + JSON.stringify(result));
-                }, function(error) {
-                    console.error("!!!!!!!ERROR -> " + JSON.stringify(error));
-                });
+    $rootScope.$on("couchbase:change", function(event, args) {
+        var indexOfObjectById = function(key, array) {
+            for(var i = 0; i < array.length; i++) {
+                if(array[i]._id === key) {
+                    return i;
+                }
             }
-            setTimeout(function() {
-                console.log("LAST SEQUENCE -> " + result.last_seq);
-                refresh(result.last_seq);
-            }, 3000);
-            //refresh(sequence + 1);
-        }, function(error) {
-            console.error("ERROR -> " + JSON.stringify(error));
-        });
-    })();
-
-    $rootScope.$on("couchbase:change", function(data) {
-        console.log("!!!!BROADCAST RECEIVER -> " + JSON.stringify(data));
+            return -1;
+        };
+        console.log("!!!!BROADCAST RECEIVER -> " + JSON.stringify(args));
+        for(var i = 0; i < args.results.length; i++) {
+            var existingObject = indexOfObjectById(args.results[i].id, $scope.lists);
+            if(args.results[i].hasOwnProperty("deleted") && args.results[i].deleted === true) {
+                if(existingObject !== -1) {
+                    $scope.lists.splice(existingObject, 1);
+                }
+            } else {
+                if(args.results[i].id.indexOf("_design") === -1) {
+                    todoDatabase.getDocument(args.results[i].id).then(function(result) {
+                        if(existingObject !== -1) {
+                            $scope.lists.splice(existingObject, 1, {"_id": result._id, "title": result.title, "_rev": result._rev});
+                        } else {
+                            $scope.lists.push({"_id": result._id, "title": result.title, "_rev": result._rev});
+                        }
+                    }, function(error) {
+                        console.error("ERROR -> " + JSON.stringify(error));
+                    });
+                }
+            }
+        }
     });
 
-    //refresh(2);
 
     todoDatabase.queryView("_design/todo", "lists").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
             $scope.lists.push({"_id": result.rows[i].id, "title": result.rows[i].value.title, "_rev": result.rows[i].value.rev});
         }
+        todoDatabase.listen(false, "longpoll", 60000, 0);
     }, function(error) {
         console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
     });

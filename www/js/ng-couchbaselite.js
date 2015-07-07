@@ -4,7 +4,7 @@
  *
  * URL: http://developer.couchbase.com/mobile/develop/references/couchbase-lite/rest-api/index.html
  */
-angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, $rootScope) {
+angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, $rootScope, $timeout) {
 
     this.databaseUrl = null;
     this.databaseName = null;
@@ -107,13 +107,27 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, 
             return this.makeRequest("POST", this.databaseUrl + "_replicate", {}, {source: source, target: target, continuous: continuous});
         },
 
-        getChanges: function(includeDocs, feed, timeout, since) {
+        /*getChanges: function(includeDocs, feed, timeout, since) {
             includeDocs = includeDocs ? includeDocs : false;
             feed = feed ? feed : "normal";
             timeout = timeout ? timeout : 5000;
             since = since ? since : 0;
-            $rootScope.$broadcast("couchbase:change", {test: "something"});
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_changes", {include_docs: includeDocs, feed: feed, since: since});
+        },*/
+
+        listen: function() {
+            var poller = function(databaseUrl, databaseName, cseq) {
+                console.log("!!!!! TRYING TO POLL");
+                $http({method: "GET", url: databaseUrl + databaseName + "/_changes", params: {feed: "longpoll", since: cseq}, withCredentials: true}).then(function(result) {
+                    $rootScope.$broadcast("couchbase:change", result.data);
+                    setTimeout(function() {
+                        poller(databaseUrl, databaseName, result.data.last_seq);
+                    }, 100);
+                }, function(error) {
+                    console.log("POLLING ERROR -> " + JSON.stringify(error));
+                });
+            }
+            poller(this.databaseUrl, this.databaseName, 0);
         },
 
         /*
