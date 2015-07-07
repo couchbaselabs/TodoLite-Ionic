@@ -89,46 +89,29 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
 
 couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPopup, $couchbase, $rootScope) {
 
-    $scope.lists = [];
+    $scope.lists = {};
 
     $rootScope.$on("couchbase:change", function(event, args) {
-        var indexOfObjectById = function(key, array) {
-            for(var i = 0; i < array.length; i++) {
-                if(array[i]._id === key) {
-                    return i;
-                }
-            }
-            return -1;
-        };
-        console.log("!!!!BROADCAST RECEIVER -> " + JSON.stringify(args));
         for(var i = 0; i < args.results.length; i++) {
-            var existingObject = indexOfObjectById(args.results[i].id, $scope.lists);
             if(args.results[i].hasOwnProperty("deleted") && args.results[i].deleted === true) {
-                if(existingObject !== -1) {
-                    $scope.lists.splice(existingObject, 1);
-                }
+                delete $scope.lists[args.results[i].id];
             } else {
                 if(args.results[i].id.indexOf("_design") === -1) {
                     todoDatabase.getDocument(args.results[i].id).then(function(result) {
-                        if(existingObject !== -1) {
-                            $scope.lists.splice(existingObject, 1, {"_id": result._id, "title": result.title, "_rev": result._rev});
-                        } else {
-                            $scope.lists.push({"_id": result._id, "title": result.title, "_rev": result._rev});
+                        if(result.type === "list") {
+                            $scope.lists[result._id] = result;
                         }
-                    }, function(error) {
-                        console.error("ERROR -> " + JSON.stringify(error));
                     });
                 }
             }
         }
     });
 
-
     todoDatabase.queryView("_design/todo", "lists").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
-            $scope.lists.push({"_id": result.rows[i].id, "title": result.rows[i].value.title, "_rev": result.rows[i].value.rev});
+            $scope.lists[result.rows[i].id] = result.rows[i];
         }
-        todoDatabase.listen(false, "longpoll", 60000, 0);
+        todoDatabase.listen();
     }, function(error) {
         console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
     });
@@ -142,12 +125,11 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
             var obj = {
                 title: result,
                 type: "list",
-                owner: "nraboy"
+                owner: "guest"
             };
             todoDatabase.createDocument(obj).then(function(result) {
                 obj._id = result.id;
                 obj._rev = result.rev;
-                $scope.lists.push(obj);
             }, function(error) {
                 console.log("ERROR: " + JSON.stringify(error));
             });
@@ -162,7 +144,6 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
                         todoDatabase.deleteDocument(result.rows[i].id, result.rows[i].value.rev);
                     }
                 }
-                $scope.lists.splice($scope.lists.indexOf(list), 1);
             }, function(error) {
                 console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
             });
@@ -173,15 +154,31 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
 
 });
 
-couchbaseApp.controller("TaskController", function($scope, $stateParams, $ionicPopup, $ionicHistory, $couchbase) {
+couchbaseApp.controller("TaskController", function($scope, $rootScope, $stateParams, $ionicPopup, $ionicHistory, $couchbase) {
 
     $scope.todoList = $stateParams.listId;
-    $scope.tasks = [];
+    $scope.tasks = {};
+
+    $rootScope.$on("couchbase:change", function(event, args) {
+        for(var i = 0; i < args.results.length; i++) {
+            if(args.results[i].hasOwnProperty("deleted") && args.results[i].deleted === true) {
+                delete $scope.tasks[args.results[i].id];
+            } else {
+                if(args.results[i].id.indexOf("_design") === -1) {
+                    todoDatabase.getDocument(args.results[i].id).then(function(result) {
+                        if(result.type === "task") {
+                            $scope.tasks[result._id] = result;
+                        }
+                    });
+                }
+            }
+        }
+    });
 
     todoDatabase.queryView("_design/todo", "tasks").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
             if(result.rows[i].value.list_id == $stateParams.listId) {
-                $scope.tasks.push({"_id": result.rows[i].id, "title": result.rows[i].value.title, "list_id": result.rows[i].value.list_id, "_rev": result.rows[i].value.rev});
+                $scope.tasks[result.rows[i].id] = {"_id": result.rows[i].id, "title": result.rows[i].value.title, "list_id": result.rows[i].value.list_id, "_rev": result.rows[i].value.rev};
             }
         }
     }, function(error) {
@@ -198,12 +195,11 @@ couchbaseApp.controller("TaskController", function($scope, $stateParams, $ionicP
                 title: result,
                 type: "task",
                 list_id: $stateParams.listId,
-                owner: "nraboy"
+                owner: "guest"
             };
             todoDatabase.createDocument(obj).then(function(result) {
                 obj._id = result.id;
                 obj._rev = result.rev;
-                $scope.tasks.push(obj);
             }, function(error) {
                 console.log("ERROR: " + JSON.stringify(error));
             });
@@ -211,11 +207,7 @@ couchbaseApp.controller("TaskController", function($scope, $stateParams, $ionicP
     }
 
     $scope.delete = function(task) {
-        todoDatabase.deleteDocument(task._id, task._rev).then(function(result) {
-            $scope.tasks.splice($scope.tasks.indexOf(task), 1);
-        }, function(error) {
-            console.log("ERROR -> " + JSON.stringify(error));
-        });
+        todoDatabase.deleteDocument(task._id, task._rev);
     }
 
     $scope.back = function() {

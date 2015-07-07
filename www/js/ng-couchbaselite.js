@@ -4,7 +4,7 @@
  *
  * URL: http://developer.couchbase.com/mobile/develop/references/couchbase-lite/rest-api/index.html
  */
-angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, $rootScope, $timeout) {
+angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, $rootScope) {
 
     this.databaseUrl = null;
     this.databaseName = null;
@@ -99,30 +99,41 @@ angular.module("ngCouchbaseLite", []).factory("$couchbase", function($q, $http, 
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_all_docs");
         },
 
+        /*
+         * Get a document from the database
+         *
+         * @param    string documentId
+         * @return   promise
+         */
         getDocument: function(documentId) {
             return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/" + documentId);
         },
 
+        /*
+         * Replicate in a single direction whether that be local to remote or remote to local
+         *
+         * @param    string source
+         * @param    string target
+         * @param    boolean continuous
+         * @return   promise
+         */
         replicate: function(source, target, continuous) {
             return this.makeRequest("POST", this.databaseUrl + "_replicate", {}, {source: source, target: target, continuous: continuous});
         },
 
-        /*getChanges: function(includeDocs, feed, timeout, since) {
-            includeDocs = includeDocs ? includeDocs : false;
-            feed = feed ? feed : "normal";
-            timeout = timeout ? timeout : 5000;
-            since = since ? since : 0;
-            return this.makeRequest("GET", this.databaseUrl + this.databaseName + "/_changes", {include_docs: includeDocs, feed: feed, since: since});
-        },*/
-
+        /*
+         * Continually poll the database for changes that include replications from a remote source
+         *
+         * @param
+         * @return
+         */
         listen: function() {
             var poller = function(databaseUrl, databaseName, cseq) {
-                console.log("!!!!! TRYING TO POLL");
                 $http({method: "GET", url: databaseUrl + databaseName + "/_changes", params: {feed: "longpoll", since: cseq}, withCredentials: true}).then(function(result) {
                     $rootScope.$broadcast("couchbase:change", result.data);
                     setTimeout(function() {
                         poller(databaseUrl, databaseName, result.data.last_seq);
-                    }, 100);
+                    }, 10);
                 }, function(error) {
                     console.log("POLLING ERROR -> " + JSON.stringify(error));
                 });

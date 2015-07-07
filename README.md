@@ -52,7 +52,7 @@ android {
 }
 ```
 
-## Usage
+## Usage (Android & iOS)
 
 To build and run the project for Android, run the following from your Terminal or Command Prompt:
 
@@ -62,6 +62,18 @@ adb install -r platforms/android/build/output/apk/android-debug.apk
 ```
 
 For iOS, run `ionic build ios` and open the Xcode project file found in the **platforms/ios** directory.
+
+## Usage (Sync Gateway)
+
+This sample application can connect to the Couchbase Sync Gateway to keep data in sync across devices and platforms.  To use with Sync Gateway, first download the latest version from the Couchbase website.  Extract the downloaded copy and from your Command Prompt (Windows) or Terminal (Linux / Mac) execute the following:
+
+```
+/path/to/sync/gateway/bin/sync_gateway /path/to/ionic/project/sync-gateway-config.json
+```
+
+This will start the Sync Gateway using the configuration file provided in this project.  It will be serving on http://localhost:4984 and http://localhost:4985.
+
+Depending on your choice of device or emulator, the host address information found in your project's **www/js/app.js** file might differ.
 
 ## Resources
 

@@ -7,9 +7,9 @@
     </ion-nav-buttons>
     <ion-content>
         <ion-list show-delete="false" can-swipe="true">
-            <ion-item ng-repeat="task in tasks" ng-if="task.list_id == todoList">
-                {{task.title}}
-                <ion-option-button class="button-assertive icon ion-trash-a" ng-click="delete(task)"></ion-option-button>
+            <ion-item ng-repeat="(key, value) in tasks" ng-if="value.list_id == todoList">
+                {{value.title}}
+                <ion-option-button class="button-assertive icon ion-trash-a" ng-click="delete(value)"></ion-option-button>
             </ion-item>
         </ion-list>
     </ion-content>
