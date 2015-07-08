@@ -58,7 +58,7 @@ To build and run the project for Android, run the following from your Terminal o
 
 ```
 ionic build android
-adb install -r platforms/android/build/output/apk/android-debug.apk
+adb install -r platforms/android/build/outputs/apk/android-debug.apk
 ```
 
 For iOS, run `ionic build ios` and open the Xcode project file found in the **platforms/ios** directory.
