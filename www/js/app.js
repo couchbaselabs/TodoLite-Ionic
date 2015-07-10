@@ -127,8 +127,7 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
                 owner: "guest"
             };
             todoDatabase.createDocument(obj).then(function(result) {
-                obj._id = result.id;
-                obj._rev = result.rev;
+                console.log("Document " + result.id + " created!");
             }, function(error) {
                 console.log("ERROR: " + JSON.stringify(error));
             });
@@ -197,8 +196,7 @@ couchbaseApp.controller("TaskController", function($scope, $rootScope, $statePar
                 owner: "guest"
             };
             todoDatabase.createDocument(obj).then(function(result) {
-                obj._id = result.id;
-                obj._rev = result.rev;
+                console.log("Document " + result.id + " created!");
             }, function(error) {
                 console.log("ERROR: " + JSON.stringify(error));
             });

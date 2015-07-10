@@ -4,7 +4,7 @@
   <description>
         TodoLite Example using Ionic Framework and the PhoneGap plugin.
     </description>
-  <author email="nic@couchbase.com" href="http://ionicframework.com/">
+  <author email="nic@couchbase.com" href="http://www.couchbase.com/">
       Nic Raboy
     </author>
   <content src="index.html"/>

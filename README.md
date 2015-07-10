@@ -21,7 +21,6 @@ ionic platform add ios
 Then install all the required plugins:
 
 ```
-cordova plugin add cordova-plugin-camera
 cordova plugin add cordova-plugin-whitelist
 cordova plugin add cordova-plugin-device
 cordova plugin add cordova-plugin-console
@@ -65,7 +64,7 @@ For iOS, run `ionic build ios` and open the Xcode project file found in the **pl
 
 ## Usage (Sync Gateway)
 
-This sample application can connect to the Couchbase Sync Gateway to keep data in sync across devices and platforms.  To use with Sync Gateway, first download the latest version from the Couchbase website.  Extract the downloaded copy and from your Command Prompt (Windows) or Terminal (Linux / Mac) execute the following:
+This sample application can connect to the [Couchbase Sync Gateway](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/) to keep data in sync across devices and platforms.  To use with Sync Gateway, first [download the latest version](http://www.couchbase.com/nosql-databases/downloads#cb-mobile) from the Couchbase website.  Extract the downloaded copy and from your Command Prompt (Windows) or Terminal (Linux / Mac) execute the following:
 
 ```
 /path/to/sync/gateway/bin/sync_gateway /path/to/ionic/project/sync-gateway-config.json
