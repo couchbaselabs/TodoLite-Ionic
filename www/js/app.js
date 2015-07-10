@@ -37,6 +37,7 @@ couchbaseApp.run(function($ionicPlatform, $couchbase) {
                         }
                     };
                     todoDatabase.createDesignDocument("_design/todo", todoViews);
+                    todoDatabase.listen();
                 }, function(error) {
                     console.error(JSON.stringify(error));
                 });
@@ -75,7 +76,6 @@ couchbaseApp.controller("LoginController", function($scope, $state, $ionicHistor
     $scope.basicLogin = function() {
         todoDatabase.replicate("todo", "http://192.168.56.1:4984/todos", true).then(function(result) {
             todoDatabase.replicate("http://192.168.56.1:4984/todos", "todo", true).then(function(result) {
-                console.log("REPLICATION -> " + JSON.stringify(result));
                 $state.go("todoLists");
             }, function(error) {
                 console.error("ERROR -> " + JSON.stringify(error));
@@ -109,9 +109,8 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
 
     todoDatabase.queryView("_design/todo", "lists").then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
-            $scope.lists[result.rows[i].id] = result.rows[i];
+            $scope.lists[result.rows[i].id] = result.rows[i].value;
         }
-        todoDatabase.listen();
     }, function(error) {
         console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
     });
