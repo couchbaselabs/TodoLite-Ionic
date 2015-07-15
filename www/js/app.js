@@ -31,7 +31,7 @@ couchbaseApp.run(function($ionicPlatform, $couchbase) {
                         tasks: {
                             map: function(doc) {
                                 if(doc.type == "task" && doc.title && doc.list_id) {
-                                    emit(doc._id, {title: doc.title, list_id: doc.list_id, rev: doc._rev})
+                                    emit(doc.list_id, {title: doc.title, list_id: doc.list_id, rev: doc._rev})
                                 }
                             }.toString()
                         }
@@ -121,26 +121,27 @@ couchbaseApp.controller("TodoListsController", function($scope, $state, $ionicPo
             inputType: 'text'
         })
         .then(function(result) {
-            var obj = {
-                title: result,
-                type: "list",
-                owner: "guest"
-            };
-            todoDatabase.createDocument(obj).then(function(result) {
-                console.log("Document " + result.id + " created!");
-            }, function(error) {
-                console.log("ERROR: " + JSON.stringify(error));
-            });
+            if(result != "") {
+                var obj = {
+                    title: result,
+                    type: "list",
+                    owner: "guest"
+                };
+                todoDatabase.createDocument(obj).then(function(result) {
+                    console.log("Document " + result.id + " created!");
+                }, function(error) {
+                    console.log("ERROR: " + JSON.stringify(error));
+                });
+            }
         });
     }
 
     $scope.delete = function(list) {
+        var listId = list._id;
         todoDatabase.deleteDocument(list._id, list._rev).then(function(result) {
-            todoDatabase.queryView("_design/todo", "tasks").then(function(result) {
+            todoDatabase.queryView("_design/todo", "tasks", {"start_key": listId}).then(function(result) {
                 for(var i = 0; i < result.rows.length; i++) {
-                    if(result.rows[i].value.list_id == list._id) {
-                        todoDatabase.deleteDocument(result.rows[i].id, result.rows[i].value.rev);
-                    }
+                    todoDatabase.deleteDocument(result.rows[i].id, result.rows[i].value.rev);
                 }
             }, function(error) {
                 console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
@@ -173,11 +174,9 @@ couchbaseApp.controller("TaskController", function($scope, $rootScope, $statePar
         }
     });
 
-    todoDatabase.queryView("_design/todo", "tasks").then(function(result) {
+    todoDatabase.queryView("_design/todo", "tasks", {"start_key": $stateParams.listId}).then(function(result) {
         for(var i = 0; i < result.rows.length; i++) {
-            if(result.rows[i].value.list_id == $stateParams.listId) {
-                $scope.tasks[result.rows[i].id] = {"_id": result.rows[i].id, "title": result.rows[i].value.title, "list_id": result.rows[i].value.list_id, "_rev": result.rows[i].value.rev};
-            }
+            $scope.tasks[result.rows[i].id] = {"_id": result.rows[i].id, "title": result.rows[i].value.title, "list_id": result.rows[i].value.list_id, "_rev": result.rows[i].value.rev};
         }
     }, function(error) {
         console.log("ERROR QUERYING VIEW -> " + JSON.stringify(error));
@@ -189,17 +188,19 @@ couchbaseApp.controller("TaskController", function($scope, $rootScope, $statePar
             inputType: 'text'
         })
         .then(function(result) {
-            var obj = {
-                title: result,
-                type: "task",
-                list_id: $stateParams.listId,
-                owner: "guest"
-            };
-            todoDatabase.createDocument(obj).then(function(result) {
-                console.log("Document " + result.id + " created!");
-            }, function(error) {
-                console.log("ERROR: " + JSON.stringify(error));
-            });
+            if(result != "") {
+                var obj = {
+                    title: result,
+                    type: "task",
+                    list_id: $stateParams.listId,
+                    owner: "guest"
+                };
+                todoDatabase.createDocument(obj).then(function(result) {
+                    console.log("Document " + result.id + " created!");
+                }, function(error) {
+                    console.log("ERROR: " + JSON.stringify(error));
+                });
+            }
         });
     }
 
