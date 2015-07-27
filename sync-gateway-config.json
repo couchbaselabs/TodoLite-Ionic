@@ -1,6 +1,5 @@
 {
     "log": ["CRUD", "REST+", "Access"],
-    "facebook": { "register": true },
     "databases": {
         "todos": {
             "server": "walrus:",

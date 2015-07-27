@@ -1,5 +1,7 @@
 # Couchbase TodoLite for Ionic Framework
 
+![Todo Lite Android](android.png) ![Todo Lite iOS](ios.png)
+
 ## Requirements
 
 * Apache Cordova 5.0+
