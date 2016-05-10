@@ -20,10 +20,10 @@
     "cordova-plugin-whitelist",
     "cordova-plugin-splashscreen",
     "ionic-plugin-keyboard",
-		{
-			"locator": "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git",
-			"id": "com.couchbase.lite.phonegap"
-		}
+    {
+	"locator": "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git",
+	"id": "com.couchbase.lite.phonegap"
+    }
   ],
   "cordovaPlatforms": [
     "ios",
