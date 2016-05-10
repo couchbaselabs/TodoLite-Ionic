@@ -19,7 +19,7 @@
     "cordova-plugin-console",
     "cordova-plugin-whitelist",
     "cordova-plugin-splashscreen",
-    "com.ionic.keyboard"
+    "ionic-plugin-keyboard"
   ],
   "cordovaPlatforms": [
     "ios",
