@@ -13,7 +13,18 @@
 
 ### Installing Dependencies
 
-After cloning the repository, run the following from your Terminal (Mac / Linux) or Command Prompt (Windows), with the project as your current working directory, to add the development platforms:
+After cloning the repository, run the following from your Terminal (Mac / Linux) or Command Prompt (Windows), with the project as your current working directory, to add dependencies:
+
+#### Automatic
+
+Let Ionic install the platforms and plugins from package.json: 
+
+```
+ionic state reset
+```
+#### Manual
+
+Add the platforms:
 
 ```
 ionic platform add android
@@ -27,7 +38,7 @@ cordova plugin add cordova-plugin-whitelist
 cordova plugin add cordova-plugin-device
 cordova plugin add cordova-plugin-console
 cordova plugin add cordova-plugin-splashscreen
-cordova plugin add com.ionic.keyboard
+cordova plugin add ionic-plugin-keyboard
 cordova plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git
 ```
 
